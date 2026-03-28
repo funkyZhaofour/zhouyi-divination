@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>周易摇卦解卦</title>
+  <title>周易摇卦 Prompt 生成器</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -25,13 +25,11 @@
       min-height: 100vh;
     }
     .wrap {
-      max-width: 1100px;
+      max-width: 1180px;
       margin: 0 auto;
       padding: 28px 16px 48px;
     }
-    .hero {
-      margin-bottom: 18px;
-    }
+    .hero { margin-bottom: 18px; }
     h1 {
       margin: 0 0 10px;
       font-size: 34px;
@@ -41,11 +39,11 @@
       color: var(--muted);
       font-size: 15px;
       line-height: 1.7;
-      max-width: 900px;
+      max-width: 980px;
     }
     .grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-columns: 1fr 1fr;
       gap: 18px;
       align-items: start;
     }
@@ -57,26 +55,16 @@
       box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
       backdrop-filter: blur(10px);
     }
-    .card h2 {
-      margin: 0 0 14px;
-      font-size: 20px;
-    }
+    .card h2 { margin: 0 0 14px; font-size: 20px; }
     .controls {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 12px;
     }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .field { display: flex; flex-direction: column; gap: 8px; }
     .field.full { grid-column: 1 / -1; }
-    label {
-      font-size: 14px;
-      color: var(--muted);
-    }
+    label { font-size: 14px; color: var(--muted); }
     select, input, textarea, button {
       border: 1px solid rgba(148, 163, 184, 0.22);
       border-radius: 14px;
@@ -87,7 +75,7 @@
       outline: none;
     }
     textarea {
-      min-height: 90px;
+      min-height: 100px;
       resize: vertical;
       line-height: 1.6;
     }
@@ -108,9 +96,7 @@
       color: #111827;
       border: none;
     }
-    .secondary {
-      background: rgba(30, 41, 59, 0.9);
-    }
+    .secondary { background: rgba(30, 41, 59, 0.9); }
     .success {
       background: linear-gradient(135deg, #22c55e, #16a34a);
       color: white;
@@ -122,10 +108,7 @@
       line-height: 1.7;
       margin-top: 10px;
     }
-    .resultBox {
-      display: grid;
-      gap: 14px;
-    }
+    .resultBox { display: grid; gap: 14px; }
     .tags {
       display: flex;
       flex-wrap: wrap;
@@ -150,10 +133,7 @@
       padding: 14px;
       background: rgba(15, 23, 42, 0.68);
     }
-    .hexCard h3 {
-      margin: 0 0 10px;
-      font-size: 18px;
-    }
+    .hexCard h3 { margin: 0 0 10px; font-size: 18px; }
     .lines {
       display: flex;
       flex-direction: column-reverse;
@@ -210,7 +190,7 @@
       border: 1px solid rgba(148, 163, 184, 0.18);
       border-radius: 16px;
       padding: 16px;
-      min-height: 220px;
+      min-height: 260px;
     }
     .status {
       margin-top: 10px;
@@ -223,12 +203,33 @@
       font-size: 13px;
       line-height: 1.8;
     }
-    code.inline {
-      padding: 2px 6px;
-      border-radius: 8px;
-      background: rgba(148, 163, 184, 0.15);
+    .pillGroup {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
     }
-    @media (max-width: 900px) {
+    .pill {
+      border-radius: 999px;
+      padding: 8px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.88);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .pill.active {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fde68a;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .copyTips {
+      color: #86efac;
+      font-size: 13px;
+      margin-top: 8px;
+      min-height: 18px;
+    }
+    @media (max-width: 980px) {
       .grid { grid-template-columns: 1fr; }
       .controls, .hexagrams { grid-template-columns: 1fr; }
       h1 { font-size: 28px; }
@@ -238,10 +239,10 @@
 <body>
   <div class="wrap">
     <div class="hero">
-      <h1>周易摇卦解卦 · DeepSeek 网页版</h1>
+      <h1>周易摇卦 Prompt 生成器</h1>
       <div class="sub">
-        这个版本按你说的“三个骰子”来做：第一个骰子决定上卦，第二个骰子决定下卦，第三个骰子决定动爻位置（初、二、三、四、五、上）。<br>
-        我把八卦顺序按标准周易八卦处理为：乾、兑、离、震、巽、坎、艮、坤。你原话里“震前对离坤训坎震”看起来像是口误，少了“艮”，多了一个“震”。
+        这个版本不直接调用 DeepSeek API，而是：你在这里摇卦、选择问题方向、填写出生信息与具体问题，系统自动生成一段高质量的解卦提示词。<br>
+        然后你点击“一键复制 Prompt”，直接粘贴到 DeepSeek、ChatGPT 或别的 AI 里，就能拿到解卦分析。
       </div>
     </div>
 
@@ -250,22 +251,57 @@
         <h2>1）配置与起卦</h2>
 
         <div class="controls">
-          <div class="field full">
-            <label for="apiKey">DeepSeek API Key（本地自己用可以直接填；如果以后要公开部署，建议改成后端代理）</label>
-            <input id="apiKey" type="password" placeholder="sk-..." />
-          </div>
-
           <div class="field">
-            <label for="model">模型</label>
-            <select id="model">
-              <option value="deepseek-chat">deepseek-chat（更稳更快）</option>
-              <option value="deepseek-reasoner">deepseek-reasoner（推理更强）</option>
+            <label for="questionType">问题方向</label>
+            <select id="questionType">
+              <option value="整体运势">整体运势</option>
+              <option value="学业">学业</option>
+              <option value="事业">事业</option>
+              <option value="财运">财运</option>
+              <option value="感情">感情</option>
+              <option value="婚姻">婚姻</option>
+              <option value="健康">健康</option>
+              <option value="人际关系">人际关系</option>
+              <option value="出行">出行</option>
+              <option value="自定义">自定义</option>
             </select>
           </div>
 
           <div class="field">
-            <label for="topic">你想问什么</label>
-            <input id="topic" type="text" placeholder="例如：最近换工作是否顺利？" />
+            <label for="mode">起卦方式</label>
+            <select id="mode">
+              <option value="manual">手动选定</option>
+              <option value="random">自动摇骰子</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <label for="topic">具体问题</label>
+            <input id="topic" type="text" placeholder="例如：我最近是否适合换工作？我和这个人还有没有继续发展的可能？" />
+          </div>
+
+          <div class="field">
+            <label for="birthday">出生日期（可选）</label>
+            <input id="birthday" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="birthHour">出生时辰（可选）</label>
+            <select id="birthHour">
+              <option value="">未填写</option>
+              <option value="子时（23:00-00:59）">子时（23:00-00:59）</option>
+              <option value="丑时（01:00-02:59）">丑时（01:00-02:59）</option>
+              <option value="寅时（03:00-04:59）">寅时（03:00-04:59）</option>
+              <option value="卯时（05:00-06:59）">卯时（05:00-06:59）</option>
+              <option value="辰时（07:00-08:59）">辰时（07:00-08:59）</option>
+              <option value="巳时（09:00-10:59）">巳时（09:00-10:59）</option>
+              <option value="午时（11:00-12:59）">午时（11:00-12:59）</option>
+              <option value="未时（13:00-14:59）">未时（13:00-14:59）</option>
+              <option value="申时（15:00-16:59）">申时（15:00-16:59）</option>
+              <option value="酉时（17:00-18:59）">酉时（17:00-18:59）</option>
+              <option value="戌时（19:00-20:59）">戌时（19:00-20:59）</option>
+              <option value="亥时（21:00-22:59）">亥时（21:00-22:59）</option>
+            </select>
           </div>
 
           <div class="field">
@@ -283,30 +319,23 @@
             <select id="moving"></select>
           </div>
 
-          <div class="field">
-            <label for="mode">起卦方式</label>
-            <select id="mode">
-              <option value="manual">手动选定</option>
-              <option value="random">自动摇骰子</option>
-            </select>
-          </div>
-
           <div class="field full">
             <label for="extra">补充背景（可选）</label>
-            <textarea id="extra" placeholder="例如：我最近准备面试、想看下个月运势、是否适合主动联系某位导师等"></textarea>
+            <textarea id="extra" placeholder="例如：最近在考虑读博、换城市、换工作，内心有些犹豫。或者：认识了一个人，想知道这段关系后续如何发展。"></textarea>
           </div>
         </div>
 
         <div class="btns">
           <button class="secondary" id="rollBtn">🎲 摇一次骰子</button>
           <button class="primary" id="buildBtn">📖 生成卦象</button>
-          <button class="success" id="askBtn">✨ 调 DeepSeek 解卦</button>
+          <button class="success" id="promptBtn">🪄 生成 Prompt</button>
+          <button class="secondary" id="copyBtn">📋 一键复制 Prompt</button>
         </div>
 
         <div class="tiny">
-          建议流程：先点“摇一次骰子” → 看卦象 → 再点“调 DeepSeek 解卦”。<br>
-          这个页面会把本卦、变卦、动爻、问题描述一起发给模型。
+          推荐流程：先点“摇一次骰子” → 看本卦和变卦 → 生成 Prompt → 一键复制 → 粘到 DeepSeek 网页版。
         </div>
+        <div class="copyTips" id="copyTips"></div>
       </div>
 
       <div class="card resultBox">
@@ -327,18 +356,20 @@
         </div>
 
         <div>
-          <h3 style="margin:0 0 10px; font-size:18px;">AI 解卦</h3>
-          <div class="answer" id="answer">这里会显示 DeepSeek 的解卦结果。</div>
+          <h3 style="margin:0 0 10px; font-size:18px;">生成的 Prompt</h3>
+          <div class="answer" id="answer">这里会显示可直接复制到 DeepSeek 的完整 Prompt。</div>
           <div class="status" id="status"></div>
         </div>
       </div>
     </div>
 
     <div class="card foot">
-      <strong>部署提醒：</strong><br>
-      1. 你自己本地打开这个 HTML 文件可以直接用。<br>
-      2. 但如果你要公开发给别人用，不要把 API Key 暴露在前端，应该把调用 DeepSeek 的代码放到后端接口里。<br>
-      3. 你后面要是愿意，我可以继续给你补第二步：<strong>Node.js/Express 后端版</strong>，这样你就能安全部署到 Vercel / Render / Railway。
+      <strong>使用方式：</strong><br>
+      1. 在这个页面里完成摇卦和问题填写。<br>
+      2. 点击“生成 Prompt”。<br>
+      3. 点击“复制 Prompt”。<br>
+      4. 打开 DeepSeek 网页版，把它粘进去即可。<br><br>
+      这个版本的优点是：免费、稳定、不暴露 API Key，也适合先做产品验证。
     </div>
   </div>
 
@@ -360,7 +391,6 @@
     const lowerSelect = document.getElementById('lower');
     const movingSelect = document.getElementById('moving');
     const modeSelect = document.getElementById('mode');
-
     const tagsEl = document.getElementById('tags');
     const mainHexTitleEl = document.getElementById('mainHexTitle');
     const changedHexTitleEl = document.getElementById('changedHexTitle');
@@ -368,8 +398,10 @@
     const changedHexEl = document.getElementById('changedHex');
     const answerEl = document.getElementById('answer');
     const statusEl = document.getElementById('status');
+    const copyTipsEl = document.getElementById('copyTips');
 
     let currentData = null;
+    let currentPrompt = '';
 
     function initOptions() {
       BAGUA.forEach((g, idx) => {
@@ -411,6 +443,10 @@
       return BAGUA[Number(selectEl.value)];
     }
 
+    function sameLines(a, b) {
+      return a.length === b.length && a.every((x, i) => x === b[i]);
+    }
+
     function buildHexagram() {
       if (modeSelect.value === 'random') {
         upperSelect.value = String(randomInt(8));
@@ -428,7 +464,6 @@
 
       const changedLower = changedLines.slice(0, 3);
       const changedUpper = changedLines.slice(3, 6);
-
       const changedLowerBagua = BAGUA.find(g => sameLines(g.lines, changedLower));
       const changedUpperBagua = BAGUA.find(g => sameLines(g.lines, changedUpper));
 
@@ -447,10 +482,6 @@
 
       renderCurrent();
       return currentData;
-    }
-
-    function sameLines(a, b) {
-      return a.length === b.length && a.every((x, i) => x === b[i]);
     }
 
     function renderCurrent() {
@@ -504,99 +535,79 @@
       });
     }
 
-    function buildPrompt(data, topic, extra) {
-      return `你现在是一位严谨、克制、中文表达清晰的周易解卦助手。请基于用户给出的骰子起卦结果进行分析，但要明确说明：这是一种传统文化娱乐与个人反思工具，不应替代医学、法律、投资等专业建议。
+    function buildPrompt() {
+      if (!currentData) buildHexagram();
 
-请按以下结构输出：
-1. 卦象概述
-2. 本卦含义
-3. 动爻分析
-4. 变卦分析
-5. 对所问事项的具体建议
-6. 一句简短总结
-
-用户问题：${topic || '未明确提问，请从整体运势与近期决策角度解读'}
-补充背景：${extra || '无'}
-
-起卦信息：
-- 上卦：${data.upper.name}${data.upper.symbol}（${data.upper.element}）
-- 下卦：${data.lower.name}${data.lower.symbol}（${data.lower.element}）
-- 动爻：${data.movingLabel}爻（第${data.moving}爻）
-- 本卦六爻（自下而上）：${data.mainLines.map(v => v ? '阳' : '阴').join('、')}
-- 变卦六爻（自下而上）：${data.changedLines.map(v => v ? '阳' : '阴').join('、')}
-- 变卦上卦：${data.changedUpper.name}${data.changedUpper.symbol}（${data.changedUpper.element}）
-- 变卦下卦：${data.changedLower.name}${data.changedLower.symbol}（${data.changedLower.element}）
-
-要求：
-- 不要故弄玄虚，不要过度神化。
-- 尽量把卦象语言翻译成现代人能听懂的话。
-- 如果用户的问题涉及感情、工作、求学、财运，请给出具有可执行性的建议。
-- 用中文输出。`;
-    }
-
-    async function askDeepSeek() {
-      const apiKey = document.getElementById('apiKey').value.trim();
-      const model = document.getElementById('model').value;
+      const questionType = document.getElementById('questionType').value;
       const topic = document.getElementById('topic').value.trim();
+      const birthday = document.getElementById('birthday').value;
+      const birthHour = document.getElementById('birthHour').value;
       const extra = document.getElementById('extra').value.trim();
 
-      if (!currentData) buildHexagram();
-      if (!apiKey) {
-        statusEl.textContent = '请先填入 DeepSeek API Key。';
-        return;
+      const birthInfo = [birthday || '', birthHour || ''].filter(Boolean).join(' ');
+      const userQuestion = topic || `请结合这个卦象，重点分析我的${questionType}。`;
+
+      currentPrompt = `请你作为一名严谨、理性、表达清晰的周易解卦分析师，对以下卦象进行分析。请把传统卦象语言翻译成现代人能听懂的话，不要故弄玄虚，也不要只说空话。
+
+【用户关注方向】
+${questionType}
+
+【用户具体问题】
+${userQuestion}
+
+【用户补充信息】
+出生信息：${birthInfo || '未提供'}
+补充背景：${extra || '无'}
+
+【起卦结果】
+上卦：${currentData.upper.name}${currentData.upper.symbol}（${currentData.upper.element}）
+下卦：${currentData.lower.name}${currentData.lower.symbol}（${currentData.lower.element}）
+动爻：${currentData.movingLabel}爻（第${currentData.moving}爻）
+
+本卦：${currentData.upper.name}上${currentData.lower.name}下（${currentData.mainName}）
+本卦六爻（自下而上）：${currentData.mainLines.map(v => v ? '阳' : '阴').join('、')}
+
+变卦：${currentData.changedUpper.name}上${currentData.changedLower.name}下（${currentData.changedName}）
+变卦六爻（自下而上）：${currentData.changedLines.map(v => v ? '阳' : '阴').join('、')}
+
+【输出要求】
+1. 先解释本卦整体是什么意思。
+2. 再分析动爻的含义，它说明当前事情处于什么阶段。
+3. 再解释变卦，说明后续趋势会怎么变化。
+4. 请重点围绕“${questionType}”这个方向回答，如果用户问题比较具体，也请直接回应那个具体问题。
+5. 给出具体、现实、可执行的建议，不要只是抽象描述。
+6. 最后请用一句话给出简短总结。
+7. 回答使用中文，结构清晰，分段表达。`;
+
+      answerEl.textContent = currentPrompt;
+      statusEl.textContent = 'Prompt 已生成，可以直接复制到 DeepSeek。';
+      copyTipsEl.textContent = '';
+      return currentPrompt;
+    }
+
+    async function copyPrompt() {
+      if (!currentPrompt) {
+        buildPrompt();
       }
 
-      answerEl.textContent = '正在请求 DeepSeek，请稍等……';
-      statusEl.textContent = '调用中...';
-
-      const prompt = buildPrompt(currentData, topic, extra);
-
       try {
-        const response = await fetch('https://api.deepseek.com/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              {
-                role: 'system',
-                content: '你是一个擅长将周易卦象解释成现代中文建议的助手，表达要清晰、温和、克制。'
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.8,
-            max_tokens: 1200
-          })
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`HTTP ${response.status}：${errText}`);
-        }
-
-        const data = await response.json();
-        const content = data?.choices?.[0]?.message?.content || '没有拿到模型返回内容。';
-        answerEl.textContent = content;
-        statusEl.textContent = '解卦完成。';
-      } catch (error) {
-        answerEl.textContent = '调用失败。你可以检查 API Key、网络，或者稍后再试。\n\n报错信息：\n' + error.message;
-        statusEl.textContent = '调用失败';
-        console.error(error);
+        await navigator.clipboard.writeText(currentPrompt);
+        copyTipsEl.textContent = '已复制到剪贴板，直接去 DeepSeek 粘贴就行。';
+        statusEl.textContent = '复制成功。';
+      } catch (err) {
+        copyTipsEl.textContent = '自动复制失败了，你可以手动选中下面的 Prompt 复制。';
+        statusEl.textContent = '复制失败';
       }
     }
 
     document.getElementById('rollBtn').addEventListener('click', rollDice);
     document.getElementById('buildBtn').addEventListener('click', buildHexagram);
-    document.getElementById('askBtn').addEventListener('click', askDeepSeek);
+    document.getElementById('promptBtn').addEventListener('click', buildPrompt);
+    document.getElementById('copyBtn').addEventListener('click', copyPrompt);
 
     initOptions();
     rollDice();
+    buildPrompt();
   </script>
 </body>
 </html>
