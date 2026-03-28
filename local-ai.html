@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>周易摇卦 · 本地 AI 解卦版</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --accent: #f59e0b;
+      --accent2: #22c55e;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(135deg, #020617 0%, #0f172a 45%, #1e293b 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+    .hero { margin-bottom: 18px; }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.15;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 1000px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .card {
+      background: rgba(17, 24, 39, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(10px);
+    }
+    .card h2 { margin: 0 0 14px; font-size: 20px; }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    label {
+      font-size: 14px;
+      color: var(--muted);
+    }
+    select, input, textarea, button {
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(15, 23, 42, 0.88);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .primary {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: #111827;
+      border: none;
+    }
+    .secondary { background: rgba(30, 41, 59, 0.9); }
+    .success {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      border: none;
+    }
+    .tiny {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: 10px;
+    }
+    .resultBox { display: grid; gap: 14px; }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.14);
+      color: #fde68a;
+      border: 1px solid rgba(245, 158, 11, 0.28);
+      font-size: 13px;
+    }
+    .hexagrams {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .hexCard {
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(15, 23, 42, 0.68);
+    }
+    .hexCard h3 { margin: 0 0 10px; font-size: 18px; }
+    .lines {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 9px;
+      padding: 8px 0;
+      min-height: 210px;
+      justify-content: center;
+    }
+    .lineRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .lineLabel {
+      width: 26px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+    .lineShape {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .yang {
+      height: 10px;
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    }
+    .yin {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+    }
+    .yin > span {
+      display: block;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #60a5fa, #38bdf8);
+    }
+    .moving {
+      font-size: 12px;
+      color: #86efac;
+      min-width: 40px;
+    }
+    .output {
+      white-space: pre-wrap;
+      line-height: 1.8;
+      color: #f8fafc;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 16px;
+      padding: 16px;
+      min-height: 280px;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #fde68a;
+      min-height: 22px;
+    }
+    .foot {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    code.inline {
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: rgba(148, 163, 184, 0.15);
+    }
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: 1fr; }
+      .controls, .hexagrams { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>周易摇卦 · 本地 AI 解卦版</h1>
+      <div class="sub">
+        这个版本不会调用 DeepSeek API，而是直接调用你电脑本地运行的 Ollama。<br>
+        适合自己在 Mac 上免费使用。前提是：Ollama 已安装，并且已经拉取了一个模型，比如 <span class="inline">qwen2.5:3b</span> 或 <span class="inline">llama3.2:3b</span>。
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>1）配置与起卦</h2>
+
+        <div class="controls">
+          <div class="field">
+            <label for="modelName">本地模型名（Ollama）</label>
+            <input id="modelName" type="text" value="qwen2.5:3b" placeholder="例如：qwen2.5:3b" />
+          </div>
+
+          <div class="field">
+            <label for="questionType">问题方向</label>
+            <select id="questionType">
+              <option value="整体运势">整体运势</option>
+              <option value="学业">学业</option>
+              <option value="事业">事业</option>
+              <option value="财运">财运</option>
+              <option value="感情">感情</option>
+              <option value="婚姻">婚姻</option>
+              <option value="健康">健康</option>
+              <option value="人际关系">人际关系</option>
+              <option value="出行">出行</option>
+              <option value="自定义">自定义</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="mode">起卦方式</label>
+            <select id="mode">
+              <option value="manual">手动选定</option>
+              <option value="random">自动摇骰子</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="temperature">输出随机性</label>
+            <input id="temperature" type="number" min="0" max="1.5" step="0.1" value="0.7" />
+          </div>
+
+          <div class="field full">
+            <label for="topic">具体问题</label>
+            <input id="topic" type="text" placeholder="例如：我最近是否适合换工作？我和这个人还有没有继续发展的可能？" />
+          </div>
+
+          <div class="field">
+            <label for="birthday">出生日期（可选）</label>
+            <input id="birthday" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="birthHour">出生时辰（可选）</label>
+            <select id="birthHour">
+              <option value="">未填写</option>
+              <option value="子时（23:00-00:59）">子时（23:00-00:59）</option>
+              <option value="丑时（01:00-02:59）">丑时（01:00-02:59）</option>
+              <option value="寅时（03:00-04:59）">寅时（03:00-04:59）</option>
+              <option value="卯时（05:00-06:59）">卯时（05:00-06:59）</option>
+              <option value="辰时（07:00-08:59）">辰时（07:00-08:59）</option>
+              <option value="巳时（09:00-10:59）">巳时（09:00-10:59）</option>
+              <option value="午时（11:00-12:59）">午时（11:00-12:59）</option>
+              <option value="未时（13:00-14:59）">未时（13:00-14:59）</option>
+              <option value="申时（15:00-16:59）">申时（15:00-16:59）</option>
+              <option value="酉时（17:00-18:59）">酉时（17:00-18:59）</option>
+              <option value="戌时（19:00-20:59）">戌时（19:00-20:59）</option>
+              <option value="亥时（21:00-22:59）">亥时（21:00-22:59）</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="upper">上卦（第一个骰子）</label>
+            <select id="upper"></select>
+          </div>
+
+          <div class="field">
+            <label for="lower">下卦（第二个骰子）</label>
+            <select id="lower"></select>
+          </div>
+
+          <div class="field">
+            <label for="moving">动爻（第三个骰子）</label>
+            <select id="moving"></select>
+          </div>
+
+          <div class="field full">
+            <label for="extra">补充背景（可选）</label>
+            <textarea id="extra" placeholder="例如：最近在考虑读博、换城市、换工作，内心有些犹豫。或者：认识了一个人，想知道这段关系后续如何发展。"></textarea>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="secondary" id="rollBtn">🎲 摇一次骰子</button>
+          <button class="primary" id="buildBtn">📖 生成卦象</button>
+          <button class="secondary" id="promptBtn">🪄 预览 Prompt</button>
+          <button class="success" id="askBtn">🤖 本地 AI 解卦</button>
+        </div>
+
+        <div class="tiny">
+          如果点击“本地 AI 解卦”报错，优先检查三件事：<br>
+          1. Ollama 是否正在运行；<br>
+          2. 模型名是否正确；<br>
+          3. 你是否用 <span class="inline">http://localhost:11434</span> 能连通本地服务。
+        </div>
+      </div>
+
+      <div class="card resultBox">
+        <h2>2）结果展示</h2>
+        <div class="tags" id="tags"></div>
+
+        <div class="hexagrams">
+          <div class="hexCard">
+            <h3>本卦</h3>
+            <div id="mainHexTitle" class="tiny">还未生成</div>
+            <div id="mainHex" class="lines"></div>
+          </div>
+          <div class="hexCard">
+            <h3>变卦</h3>
+            <div id="changedHexTitle" class="tiny">还未生成</div>
+            <div id="changedHex" class="lines"></div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin:0 0 10px; font-size:18px;">本地 AI 输出</h3>
+          <div class="output" id="answer">这里会显示本地模型返回的解卦内容。你也可以先点“预览 Prompt”看看将要发给模型的提示词。</div>
+          <div class="status" id="status"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card foot">
+      <strong>本地运行提醒：</strong><br>
+      1. 建议直接双击本文件，或者用本地静态服务器打开。<br>
+      2. 某些浏览器安全策略可能限制本地页面访问本地接口；如果遇到问题，最稳的方法是开一个本地 http 服务。<br>
+      3. 推荐新手优先试模型：<span class="inline">qwen2.5:3b</span>。中文通常会比一些英文模型顺手。
+    </div>
+  </div>
+
+  <script>
+    const BAGUA = [
+      { name: '乾', symbol: '☰', lines: [1,1,1], element: '天' },
+      { name: '兑', symbol: '☱', lines: [1,1,0], element: '泽' },
+      { name: '离', symbol: '☲', lines: [1,0,1], element: '火' },
+      { name: '震', symbol: '☳', lines: [1,0,0], element: '雷' },
+      { name: '巽', symbol: '☴', lines: [0,1,1], element: '风' },
+      { name: '坎', symbol: '☵', lines: [0,1,0], element: '水' },
+      { name: '艮', symbol: '☶', lines: [0,0,1], element: '山' },
+      { name: '坤', symbol: '☷', lines: [0,0,0], element: '地' },
+    ];
+
+    const MOVING_LINES = ['初', '二', '三', '四', '五', '上'];
+
+    const upperSelect = document.getElementById('upper');
+    const lowerSelect = document.getElementById('lower');
+    const movingSelect = document.getElementById('moving');
+    const modeSelect = document.getElementById('mode');
+    const tagsEl = document.getElementById('tags');
+    const mainHexTitleEl = document.getElementById('mainHexTitle');
+    const changedHexTitleEl = document.getElementById('changedHexTitle');
+    const mainHexEl = document.getElementById('mainHex');
+    const changedHexEl = document.getElementById('changedHex');
+    const answerEl = document.getElementById('answer');
+    const statusEl = document.getElementById('status');
+
+    let currentData = null;
+    let currentPrompt = '';
+
+    function initOptions() {
+      BAGUA.forEach((g, idx) => {
+        const opt1 = document.createElement('option');
+        opt1.value = idx;
+        opt1.textContent = `${g.name} ${g.symbol}（${g.element}）`;
+        upperSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = idx;
+        opt2.textContent = `${g.name} ${g.symbol}（${g.element}）`;
+        lowerSelect.appendChild(opt2);
+      });
+
+      MOVING_LINES.forEach((name, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx + 1;
+        opt.textContent = `${name}爻（第${idx + 1}爻）`;
+        movingSelect.appendChild(opt);
+      });
+
+      upperSelect.value = '0';
+      lowerSelect.value = '7';
+      movingSelect.value = '1';
+    }
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function rollDice() {
+      upperSelect.value = String(randomInt(8));
+      lowerSelect.value = String(randomInt(8));
+      movingSelect.value = String(randomInt(6) + 1);
+      return buildHexagram();
+    }
+
+    function getSelectedBagua(selectEl) {
+      return BAGUA[Number(selectEl.value)];
+    }
+
+    function sameLines(a, b) {
+      return a.length === b.length && a.every((x, i) => x === b[i]);
+    }
+
+    function buildHexagram() {
+      if (modeSelect.value === 'random') {
+        upperSelect.value = String(randomInt(8));
+        lowerSelect.value = String(randomInt(8));
+        movingSelect.value = String(randomInt(6) + 1);
+      }
+
+      const upper = getSelectedBagua(upperSelect);
+      const lower = getSelectedBagua(lowerSelect);
+      const moving = Number(movingSelect.value);
+
+      const mainLines = [...lower.lines, ...upper.lines];
+      const changedLines = [...mainLines];
+      changedLines[moving - 1] = mainLines[moving - 1] === 1 ? 0 : 1;
+
+      const changedLower = changedLines.slice(0, 3);
+      const changedUpper = changedLines.slice(3, 6);
+      const changedLowerBagua = BAGUA.find(g => sameLines(g.lines, changedLower));
+      const changedUpperBagua = BAGUA.find(g => sameLines(g.lines, changedUpper));
+
+      currentData = {
+        upper,
+        lower,
+        moving,
+        movingLabel: MOVING_LINES[moving - 1],
+        mainLines,
+        changedLines,
+        mainName: `${upper.element}${lower.element}`,
+        changedName: `${changedUpperBagua.element}${changedLowerBagua.element}`,
+        changedUpper: changedUpperBagua,
+        changedLower: changedLowerBagua,
+      };
+
+      renderCurrent();
+      return currentData;
+    }
+
+    function renderCurrent() {
+      if (!currentData) return;
+      tagsEl.innerHTML = `
+        <span class="tag">上卦：${currentData.upper.name}${currentData.upper.symbol}</span>
+        <span class="tag">下卦：${currentData.lower.name}${currentData.lower.symbol}</span>
+        <span class="tag">动爻：${currentData.movingLabel}爻</span>
+        <span class="tag">本卦六爻：${currentData.mainLines.map(v => v ? '阳' : '阴').join(' / ')}</span>
+      `;
+
+      mainHexTitleEl.textContent = `${currentData.upper.name}上${currentData.lower.name}下 · ${currentData.mainName}`;
+      changedHexTitleEl.textContent = `${currentData.changedUpper.name}上${currentData.changedLower.name}下 · ${currentData.changedName}`;
+
+      renderHex(mainHexEl, currentData.mainLines, currentData.moving);
+      renderHex(changedHexEl, currentData.changedLines, null);
+    }
+
+    function renderHex(target, lines, movingIndex) {
+      target.innerHTML = '';
+      lines.forEach((v, idx) => {
+        const row = document.createElement('div');
+        row.className = 'lineRow';
+
+        const label = document.createElement('div');
+        label.className = 'lineLabel';
+        label.textContent = MOVING_LINES[idx];
+
+        const shapeWrap = document.createElement('div');
+        shapeWrap.className = 'lineShape';
+
+        if (v === 1) {
+          const yang = document.createElement('div');
+          yang.className = 'yang';
+          shapeWrap.appendChild(yang);
+        } else {
+          const yin = document.createElement('div');
+          yin.className = 'yin';
+          yin.innerHTML = '<span></span><span></span>';
+          shapeWrap.appendChild(yin);
+        }
+
+        const moving = document.createElement('div');
+        moving.className = 'moving';
+        moving.textContent = movingIndex === idx + 1 ? '动爻' : '';
+
+        row.appendChild(label);
+        row.appendChild(shapeWrap);
+        row.appendChild(moving);
+        target.appendChild(row);
+      });
+    }
+
+    function buildPrompt() {
+      if (!currentData) buildHexagram();
+
+      const questionType = document.getElementById('questionType').value;
+      const topic = document.getElementById('topic').value.trim();
+      const birthday = document.getElementById('birthday').value;
+      const birthHour = document.getElementById('birthHour').value;
+      const extra = document.getElementById('extra').value.trim();
+
+      const birthInfo = [birthday || '', birthHour || ''].filter(Boolean).join(' ');
+      const userQuestion = topic || `请结合这个卦象，重点分析我的${questionType}。`;
+
+      currentPrompt = `请你作为一名严谨、理性、表达清晰的周易解卦分析师，对以下卦象进行分析。请把传统卦象语言翻译成现代人能听懂的话，不要故弄玄虚，也不要只说空话。
+
+【用户关注方向】
+${questionType}
+
+【用户具体问题】
+${userQuestion}
+
+【用户补充信息】
+出生信息：${birthInfo || '未提供'}
+补充背景：${extra || '无'}
+
+【起卦结果】
+上卦：${currentData.upper.name}${currentData.upper.symbol}（${currentData.upper.element}）
+下卦：${currentData.lower.name}${currentData.lower.symbol}（${currentData.lower.element}）
+动爻：${currentData.movingLabel}爻（第${currentData.moving}爻）
+
+本卦：${currentData.upper.name}上${currentData.lower.name}下（${currentData.mainName}）
+本卦六爻（自下而上）：${currentData.mainLines.map(v => v ? '阳' : '阴').join('、')}
+
+变卦：${currentData.changedUpper.name}上${currentData.changedLower.name}下（${currentData.changedName}）
+变卦六爻（自下而上）：${currentData.changedLines.map(v => v ? '阳' : '阴').join('、')}
+
+【输出要求】
+1. 先解释本卦整体是什么意思。
+2. 再分析动爻的含义，它说明当前事情处于什么阶段。
+3. 再解释变卦，说明后续趋势会怎么变化。
+4. 请重点围绕“${questionType}”这个方向回答，如果用户问题比较具体，也请直接回应那个具体问题。
+5. 给出具体、现实、可执行的建议，不要只是抽象描述。
+6. 最后请用一句话给出简短总结。
+7. 回答使用中文，结构清晰，分段表达。`;
+
+      answerEl.textContent = currentPrompt;
+      statusEl.textContent = '这是即将发给本地模型的 Prompt 预览。';
+      return currentPrompt;
+    }
+
+    async function askLocalAI() {
+      if (!currentPrompt) buildPrompt();
+
+      const modelName = document.getElementById('modelName').value.trim();
+      const temperature = Number(document.getElementById('temperature').value || 0.7);
+
+      if (!modelName) {
+        statusEl.textContent = '请先填写本地模型名，例如 qwen2.5:3b。';
+        return;
+      }
+
+      answerEl.textContent = '正在请求本地 Ollama，请稍等……';
+      statusEl.textContent = '调用中...';
+
+      try {
+        const response = await fetch('http://localhost:11434/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              {
+                role: 'system',
+                content: '你是一位严谨、克制、中文表达清晰的周易解卦助手。'
+              },
+              {
+                role: 'user',
+                content: currentPrompt
+              }
+            ],
+            stream: false,
+            options: {
+              temperature
+            }
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`HTTP ${response.status}：${errText}`);
+        }
+
+        const data = await response.json();
+        const text = data?.message?.content || '没有拿到本地模型返回内容。';
+        answerEl.textContent = text;
+        statusEl.textContent = '本地 AI 解卦完成。';
+      } catch (error) {
+        answerEl.textContent = '调用本地模型失败。\n\n常见原因：\n1. Ollama 没启动；\n2. 模型还没下载；\n3. 模型名写错；\n4. 浏览器拦截了 localhost 请求。\n\n详细报错：\n' + error.message;
+        statusEl.textContent = '调用失败';
+        console.error(error);
+      }
+    }
+
+    document.getElementById('rollBtn').addEventListener('click', rollDice);
+    document.getElementById('buildBtn').addEventListener('click', buildHexagram);
+    document.getElementById('promptBtn').addEventListener('click', buildPrompt);
+    document.getElementById('askBtn').addEventListener('click', askLocalAI);
+
+    initOptions();
+    rollDice();
+    buildPrompt();
+  </script>
+</body>
+</html>
